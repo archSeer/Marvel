@@ -1,12 +1,16 @@
 class Marvel::Hub
+  include ActiveSupport::Configurable
+
   def initialize(host, port)
+    config.merge! Marvel.config.except(:hub)
+
     @host = host
     @port = port
 
     @users = {}
 
     @hubname = nil
-    @nick = 't3st'
+    @nick = config.delete(:nick)
     @op = false
     @login = false
   end
@@ -34,14 +38,10 @@ class Marvel::Hub
   end
 
   def send_info
-    interest = "Batman"
     tag = "<dCP++ V:0.8,M:P,H:3/0/0,S:4>"
-    speed = "DSL3"
-    email = "tests@test.com"
     sharesize = 1698351616 #698351616
-    slots = "1/3"
-    onlinetime = nil
-    send "MyINFO $ALL", "#{@nick} #{interest}#{tag}$ $#{speed}$#{email}$#{sharesize}$#{slots}$#{onlinetime}$"
+
+    send "MyINFO $ALL", "#{@nick} #{config.interest}#{tag}$ $#{config.speed}$#{config.email}$#{sharesize}$"
   end
 
   def handle_message(line)

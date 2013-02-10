@@ -5,6 +5,8 @@ module Marvel; end
 Dir["lib/**/*.rb"].each {|path| require_relative path }
 
 module Marvel
+  include ActiveSupport::Configurable
+
   class KeyboardHandler < EventMachine::Connection
     include EM::Protocols::LineText2
     def initialize hub
@@ -17,12 +19,14 @@ module Marvel
       puts err
     end
   end
-end # end Marvel
 
-Marvel::IP = %x{curl -s checkip.dyndns.org | grep -Eo '[0-9\.]+'}
+  IP = %x{curl -s checkip.dyndns.org | grep -Eo '[0-9\.]+'}
 
-config = YAML.load_file("config.yml").symbolize_keys
-hub = Marvel::Hub.new(config[:host], config[:port])
+  self.config.merge! YAML.load_file("config.yml").symbolize_keys
+end
+
+cfg = Marvel.config.hub
+hub = Marvel::Hub.new(cfg["host"], cfg["port"])
 
 EM.run {
   EM.open_keyboard(Marvel::KeyboardHandler, hub)
